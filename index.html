@@ -1,94 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOAP Médico</title>
+SOAP Hospital Inteligente body { font-family: Arial; background:#e9edf2; padding:20px; } .container { background:white; padding:20px; border-radius:12px; max-width:900px; margin:auto; } h2 { text-align:center; } input, select { width:100%; padding:8px; margin-top:5px; } button { padding:10px; margin-top:10px; border:none; border-radius:8px; cursor:pointer; } .primary { background:#1e88e5; color:white; } .secondary { background:#dcdcdc; } textarea { width:100%; height:340px; margin-top:15px; } .alert { color:red; font-weight:bold; } 
 
-<style>
-body { font-family: Arial; padding:20px; background:#f5f5f5; }
-.container { background:white; padding:20px; border-radius:10px; max-width:800px; margin:auto; }
-button { padding:10px; margin:5px; border:none; border-radius:8px; cursor:pointer; }
-textarea { width:100%; height:250px; margin-top:10px; }
-.section { margin-bottom:15px; }
-</style>
+🏥 SOAP Hospital Inteligente 
 
-</head>
+Sexo: 
 
-<body>
+Feminino Masculino 
 
-<div class="container">
-<h2>Gerador de SOAP Médico</h2>
+Queixa principal: 
 
-<div class="section">
-<label>Sexo:</label>
-<select id="sexo">
-<option value="fem">Feminino</option>
-<option value="masc">Masculino</option>
-</select>
-</div>
+Sintomas: 
 
-<div class="section">
-<label>Queixa principal:</label>
-<input type="text" id="qp" style="width:100%">
-</div>
+Gerar SOAP Copiar Limpar
 
-<div class="section">
-<label>Sintomas:</label>
-<input type="text" id="sintomas" style="width:100%" placeholder="Ex: febre, dor abdominal">
-</div>
-
-<button onclick="gerarSOAP()">Gerar SOAP</button>
-<button onclick="copiar()">Copiar</button>
-
-<textarea id="resultado"></textarea>
-</div>
-
-<script>
-function gerarSOAP(){
-let sexo = document.getElementById('sexo').value;
-let qp = document.getElementById('qp').value;
-let sintomas = document.getElementById('sintomas').value;
-
-let exameFem = `EXAME FÍSICO FEM
-AO EXAME: BEG, LOTE, AFEBRIL, NORMOCORADA, HIDRATADA.
-NEUROLÓGICO: GLASGOW 15, SEM DÉFICITS FOCAIS, FORÇA 5/5, PUPILAS ISOCÓRICAS E FOTORREAGENTES;
-AR: MVBD SEM RA, EUPNEICA;
-ACV: RCR, BRNF 2T SEM SOPROS;
-ABD: RHA +, FLÁCIDO, INDOLOR;
-EXT: SEM EDEMAS.`;
-
-let exameMasc = `EXAME FÍSICO MASC
-AO EXAME: BEG, LOTE, ANICTÉRICO, AFEBRIL, HIDRATADO.
-NEUROLÓGICO: GLASGOW 15, SEM DÉFICITS FOCAIS, FORÇA 5/5;
-AR: MVBD SEM RA;
-ACV: RCR, SEM SOPROS;
-ABD: RHA +, INDOLOR;
-EXT: SEM EDEMAS.`;
-
-let soap = `S: ${qp} | Sintomas: ${sintomas}
-
-O:
-${sexo === 'fem' ? exameFem : exameMasc}
-
-A: A esclarecer
-
-P:
-- Orientações
-- Prescrição
-- Retorno se piora`;
-
-document.getElementById('resultado').value = soap;
-}
-
-function copiar(){
-let texto = document.getElementById('resultado');
-texto.select();
-document.execCommand('copy');
-
-alert('Copiado!');
-}
-</script>
-
-</body>
-</html>
+function analisar(s){ let t = s.toLowerCase(); let dx = []; let conduta = []; let exames = []; let alertas = []; let exameExtra = ""; // RED FLAGS if(t.includes("dispneia") && t.includes("febre")){ alertas.push("🚨 Risco respiratório grave"); } if(t.includes("dor torácica")){ alertas.push("🚨 Avaliar SCA"); } if(t.includes("rebaixamento") || t.includes("confusão")){ alertas.push("🚨 Alteração neurológica"); } // DIAGNÓSTICO + CONDUTA if(t.includes("febre") && t.includes("tosse")){ dx.push("Infecção respiratória / Pneumonia"); conduta.push("Considerar ATB"); exames.push("RX tórax", "Hemograma", "PCR"); exameExtra += "AR: MVBD, avaliar crepitações.\n"; } if(t.includes("dispneia")){ dx.push("Síndrome respiratória"); conduta.push("Monitorar SatO2"); exames.push("Gasometria"); exameExtra += "AR: esforço respiratório presente.\n"; } if(t.includes("dor abdominal")){ dx.push("Abdome agudo"); conduta.push("Avaliar irritação peritoneal"); exames.push("USG abdome"); exameExtra += "ABD: avaliar dor localizada e defesa.\n"; } if(t.includes("náusea") || t.includes("vômito")){ dx.push("Síndrome gastrointestinal"); conduta.push("Hidratação + antiemético"); exames.push("Eletrólitos"); } return { dx: dx.join("; ") || "A esclarecer", conduta: conduta.join("\n- ") || "Conduta geral", exames: exames.join(", "), alertas: alertas.join("\n"), exameExtra }; } function gerarSOAP(){ let sexo = document.getElementById('sexo').value; let qp = document.getElementById('qp').value; let sintomas = document.getElementById('sintomas').value; let dados = analisar(sintomas); let exameBase = sexo === 'fem' ? `BEG, afebril, hidratada.\nNeuro: Glasgow 15.\nACV: RCR.` : `BEG, afebril, hidratado.\nNeuro: Glasgow 15.\nACV: RCR.`; let soap = `S: ${qp}\nSintomas: ${sintomas}\n\nO:\n${exameBase}\n${dados.exameExtra}\n\nA:\n${dados.dx}\n\nP:\n- ${dados.conduta}\n- Exames: ${dados.exames}\n- Retorno se piora`; if(dados.alertas){ soap = `🚨 ALERTAS:\n${dados.alertas}\n\n` + soap; } document.getElementById('resultado').value = soap; } function copiar(){ navigator.clipboard.writeText(document.getElementById('resultado').value); } function limpar(){ document.getElementById('qp').value = ''; document.getElementById('sintomas').value = ''; document.getElementById('resultado').value = ''; } 
