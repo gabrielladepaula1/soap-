@@ -1,15 +1,148 @@
-SOAP Hospital Inteligente body { font-family: Arial; background:#e9edf2; padding:20px; } .container { background:white; padding:20px; border-radius:12px; max-width:900px; margin:auto; } h2 { text-align:center; } input, select { width:100%; padding:8px; margin-top:5px; } button { padding:10px; margin-top:10px; border:none; border-radius:8px; cursor:pointer; } .primary { background:#1e88e5; color:white; } .secondary { background:#dcdcdc; } textarea { width:100%; height:340px; margin-top:15px; } .alert { color:red; font-weight:bold; } 
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOAP Hospital Inteligente</title>
 
-🏥 SOAP Hospital Inteligente 
+<style>
+body { font-family: Arial; background:#e9edf2; padding:20px; }
+.container { background:white; padding:20px; border-radius:12px; max-width:900px; margin:auto; }
+h2 { text-align:center; }
+input, select { width:100%; padding:8px; margin-top:5px; }
+button { padding:10px; margin-top:10px; border:none; border-radius:8px; cursor:pointer; }
+.primary { background:#1e88e5; color:white; }
+.secondary { background:#dcdcdc; }
+textarea { width:100%; height:340px; margin-top:15px; }
+</style>
 
-Sexo: 
+</head>
 
-Feminino Masculino 
+<body>
 
-Queixa principal: 
+<div class="container">
+<h2>🏥 SOAP Hospital Inteligente</h2>
 
-Sintomas: 
+<label>Sexo:</label>
+<select id="sexo">
+<option value="fem">Feminino</option>
+<option value="masc">Masculino</option>
+</select>
 
-Gerar SOAP Copiar Limpar
+<label>Queixa principal:</label>
+<input type="text" id="qp">
 
-function analisar(s){ let t = s.toLowerCase(); let dx = []; let conduta = []; let exames = []; let alertas = []; let exameExtra = ""; // RED FLAGS if(t.includes("dispneia") && t.includes("febre")){ alertas.push("🚨 Risco respiratório grave"); } if(t.includes("dor torácica")){ alertas.push("🚨 Avaliar SCA"); } if(t.includes("rebaixamento") || t.includes("confusão")){ alertas.push("🚨 Alteração neurológica"); } // DIAGNÓSTICO + CONDUTA if(t.includes("febre") && t.includes("tosse")){ dx.push("Infecção respiratória / Pneumonia"); conduta.push("Considerar ATB"); exames.push("RX tórax", "Hemograma", "PCR"); exameExtra += "AR: MVBD, avaliar crepitações.\n"; } if(t.includes("dispneia")){ dx.push("Síndrome respiratória"); conduta.push("Monitorar SatO2"); exames.push("Gasometria"); exameExtra += "AR: esforço respiratório presente.\n"; } if(t.includes("dor abdominal")){ dx.push("Abdome agudo"); conduta.push("Avaliar irritação peritoneal"); exames.push("USG abdome"); exameExtra += "ABD: avaliar dor localizada e defesa.\n"; } if(t.includes("náusea") || t.includes("vômito")){ dx.push("Síndrome gastrointestinal"); conduta.push("Hidratação + antiemético"); exames.push("Eletrólitos"); } return { dx: dx.join("; ") || "A esclarecer", conduta: conduta.join("\n- ") || "Conduta geral", exames: exames.join(", "), alertas: alertas.join("\n"), exameExtra }; } function gerarSOAP(){ let sexo = document.getElementById('sexo').value; let qp = document.getElementById('qp').value; let sintomas = document.getElementById('sintomas').value; let dados = analisar(sintomas); let exameBase = sexo === 'fem' ? `BEG, afebril, hidratada.\nNeuro: Glasgow 15.\nACV: RCR.` : `BEG, afebril, hidratado.\nNeuro: Glasgow 15.\nACV: RCR.`; let soap = `S: ${qp}\nSintomas: ${sintomas}\n\nO:\n${exameBase}\n${dados.exameExtra}\n\nA:\n${dados.dx}\n\nP:\n- ${dados.conduta}\n- Exames: ${dados.exames}\n- Retorno se piora`; if(dados.alertas){ soap = `🚨 ALERTAS:\n${dados.alertas}\n\n` + soap; } document.getElementById('resultado').value = soap; } function copiar(){ navigator.clipboard.writeText(document.getElementById('resultado').value); } function limpar(){ document.getElementById('qp').value = ''; document.getElementById('sintomas').value = ''; document.getElementById('resultado').value = ''; } 
+<label>Sintomas:</label>
+<input type="text" id="sintomas" placeholder="Ex: febre, tosse, dispneia">
+
+<button class="primary" onclick="gerarSOAP()">Gerar SOAP</button>
+<button class="secondary" onclick="copiar()">Copiar</button>
+<button class="secondary" onclick="limpar()">Limpar</button>
+
+<textarea id="resultado"></textarea>
+</div>
+
+<script>
+
+function analisar(s){
+let t = s.toLowerCase();
+let dx = [];
+let conduta = [];
+let exames = [];
+let alertas = [];
+let exameExtra = "";
+
+// RED FLAGS
+if(t.includes("dispneia") && t.includes("febre")){
+alertas.push("🚨 Risco respiratório grave");
+}
+
+if(t.includes("dor torácica")){
+alertas.push("🚨 Avaliar SCA");
+}
+
+if(t.includes("confusão")){
+alertas.push("🚨 Alteração neurológica");
+}
+
+// DIAGNÓSTICO + CONDUTA
+if(t.includes("febre") && t.includes("tosse")){
+dx.push("Infecção respiratória / Pneumonia");
+conduta.push("Considerar ATB");
+exames.push("RX tórax", "Hemograma", "PCR");
+exameExtra += "AR: avaliar crepitações.\n";
+}
+
+if(t.includes("dispneia")){
+dx.push("Síndrome respiratória");
+conduta.push("Monitorar SatO2");
+exames.push("Gasometria");
+exameExtra += "AR: esforço respiratório.\n";
+}
+
+if(t.includes("dor abdominal")){
+dx.push("Abdome agudo");
+conduta.push("Avaliar irritação peritoneal");
+exames.push("USG abdome");
+exameExtra += "ABD: dor localizada.\n";
+}
+
+return {
+dx: dx.join("; ") || "A esclarecer",
+conduta: conduta.join("\n- ") || "Conduta geral",
+exames: exames.join(", "),
+alertas: alertas.join("\n"),
+exameExtra
+};
+}
+
+function gerarSOAP(){
+let sexo = document.getElementById('sexo').value;
+let qp = document.getElementById('qp').value;
+let sintomas = document.getElementById('sintomas').value;
+
+let dados = analisar(sintomas);
+
+let exameBase = sexo === 'fem'
+? "BEG, afebril, hidratada.\nNeuro: Glasgow 15.\nACV: RCR."
+: "BEG, afebril, hidratado.\nNeuro: Glasgow 15.\nACV: RCR.";
+
+let soap = `S: ${qp}
+Sintomas: ${sintomas}
+
+O:
+${exameBase}
+${dados.exameExtra}
+
+A:
+${dados.dx}
+
+P:
+- ${dados.conduta}
+- Exames: ${dados.exames}
+- Retorno se piora`;
+
+if(dados.alertas){
+soap = `🚨 ALERTAS:
+${dados.alertas}
+
+` + soap;
+}
+
+document.getElementById('resultado').value = soap;
+}
+
+function copiar(){
+navigator.clipboard.writeText(document.getElementById('resultado').value);
+}
+
+function limpar(){
+document.getElementById('qp').value = '';
+document.getElementById('sintomas').value = '';
+document.getElementById('resultado').value = '';
+}
+
+</script>
+
+</body>
+</html>
